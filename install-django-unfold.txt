@@ -1,0 +1,86 @@
+# terminal
+pip install django-unfold
+pip install django-import-export
+
+# settings.py
+
+ from django.utils.translation import gettext_lazy as _
+
+- installed_apps
+  'unfold',
+  'unfold.contrib.import_export',
+  .. end installed_apps
+  'import_export',
+
+- midllware
+  ...
+  "django.middleware.locale.LocaleMiddleware",
+
+USE_I18N = True
+ USE_L10N = True
+
+ LANGUAGES = (
+    ("ar", _("العربية")),
+    ("en", _("English")),
+ )
+
+ LOCALE_PATHS = [
+    BASE_DIR / "locale",   # مكان حفظ ملفات الترجمة
+ ]
+
+
+- end file
+UNFOLD = {
+    "SITE_HEADER": "Chicken Management",
+    "SHOW_LANGUAGES": True,
+    "LANGUAGES": {
+        "navigation": [
+            {
+                "bidi": True,               # اتجاه الكتابة RTL
+                "code": "ar",              # كود اللغة
+                "name": "Arabic",          # الاسم بالإنجليزية
+                "name_local": "العربية",   # الاسم بالعربية
+                "name_translated": "Arabic",  # ممكن تخليه يترجم حسب gettext
+            },
+            {
+                "bidi": False,
+                "code": "en",
+                "name": "English",
+                "name_local": "English",
+                "name_translated": "English",
+            },
+        ],
+    },
+}
+
+
+# urls.py
+  from django.conf.urls.i18n import i18n_patterns
+
+  - urlpattrens
+    path("i18n/", include("django.conf.urls.i18n")),
+  urlpattrens += i18n_patterns(
+      path("admin/", admin.site.urls),
+  )
+
+# admin.py
+
+from import_export.admin import ImportExportModelAdmin
+from unfold.admin import ModelAdmin
+from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
+from django.contrib.auth.admin import GroupAdmin as BaseGroupAdmin
+from django.contrib.auth.models import User, Group
+
+from unfold.forms import AdminPasswordChangeForm, UserChangeForm, UserCreationForm
+from unfold.contrib.import_export.forms import ExportForm, ImportForm, SelectableFieldsExportForm
+
+admin.site.unregister(User)
+@admin.register(User)
+class UserAdmin(BaseUserAdmin, ModelAdmin):
+    # Forms loaded from `unfold.forms`
+    form = UserChangeForm
+    add_form = UserCreationForm
+    change_password_form = AdminPasswordChangeForm
+class ProductAdmin(ImportExportModelAdmin,ModelAdmin):
+  import_form_class = ImportForm --
+  export_form_class = ExportForm --
